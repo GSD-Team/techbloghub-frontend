@@ -1,5 +1,5 @@
 import './globals.css'
-import Layout from "@/app/(blog)/layout";
+import CustomAppBar from '@/app/analytics/appBar';
 
 export default function RootLayout({
   children,
@@ -14,6 +14,7 @@ export default function RootLayout({
       */}
       <head />
       <body>
+        <CustomAppBar />
         {children}
       </body>
     </html>

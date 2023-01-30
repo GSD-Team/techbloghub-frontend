@@ -12,7 +12,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import {Favorite, Login, Logout} from "@mui/icons-material";
 
 export default function customAppBar() {
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [, setMobileOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClose = () => {

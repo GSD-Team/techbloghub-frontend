@@ -1,12 +1,8 @@
-import CustomAppBar from "@/app/(blog)/analytics/appBar";
-
+import styles from '@/app/page.module.css'
 export default function Layout({children}: {
   children: React.ReactNode
 }){
   return (
-    <>
-      <CustomAppBar />
-      <main>{children}</main>
-    </>
+    <main className={styles.main}>{children}</main>
   )
 }
