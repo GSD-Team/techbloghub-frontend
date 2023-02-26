@@ -1,8 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true,
+    appDir: false,
+    fontLoaders: [{ loader: "@next/font/google" }],
   },
-}
+  rewrites: () => {
+    return [
+      {
+        source: "/api/contents",
+        destination: `${process.env.DEVELOPE_API}/contents`,
+      },
+      {
+        source: "/api/contents/mock",
+        destination: `${process.env.DEVELOPE_API}/contents/mock`,
+      },
+    ];
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
