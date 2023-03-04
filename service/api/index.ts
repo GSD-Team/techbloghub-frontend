@@ -2,11 +2,27 @@ interface Props {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
   data?: unknown;
+  params?: any;
 }
 
-export default async function postData({ url, method = "GET", data }: Props) {
+export default async function postData({
+  url,
+  method = "GET",
+  data,
+  params,
+}: Props) {
+  const urlParams = new URLSearchParams();
+
+  if (params) {
+    Object.keys(params).forEach((key: any) => {
+      console.log(key);
+
+      urlParams.append(key, params[key]);
+    });
+  }
+
   // 옵션 기본 값은 *로 강조
-  const response = await fetch(url, {
+  const response = await fetch(`${url}?${urlParams.toString()}`, {
     method: method, // *GET, POST, PUT, DELETE 등
     mode: "cors", // no-cors, *cors, same-origin
     cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached

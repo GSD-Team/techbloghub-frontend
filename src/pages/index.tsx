@@ -1,16 +1,17 @@
 import Grid2 from "@mui/material/Unstable_Grid2";
-import Fade from "@mui/material/Fade";
 import postData from "service/api";
-import { useRouter } from "next/router";
 import styled from "@emotion/styled";
-import HideImageIcon from "@mui/icons-material/HideImage";
+import { useState, useEffect, useRef } from "react";
 
 interface ContentResponse {
-  data: {
-    contents: ContentItem[];
+  res: {
+    data: {
+      contents: ContentItem[];
+      lastId?: string;
+    };
+    message: string;
+    resultCode: string;
   };
-  message: string;
-  resultCode: string;
 }
 
 interface ContentItem {
@@ -27,20 +28,62 @@ interface FlexImgBoxProps {
   url: string;
 }
 
-export default function Home({ res }: any): JSX.Element {
-  console.log(res);
-  const router = useRouter();
-
+export default function Home({ res }: ContentResponse): JSX.Element {
+  const [listItem, setListItem] = useState(res.data);
+  const listItemsRef = useRef<any[]>([]);
   const goLink = (link: string) => {
     window.open(link, "_blank");
   };
+
+  const fetchMore = async () => {
+    console.log("fetchMore", listItem.lastId);
+    const res = await postData({
+      url: "http://localhost:3000/api/contents/mock",
+      method: "GET",
+      params: {
+        currentNextId: listItem.lastId,
+      },
+    });
+
+    return res;
+  };
+
+  useEffect(() => {
+    const observerCallBack = (entries: any) => {
+      entries.forEach((entry: any) => {
+        if (entry.isIntersecting) {
+          io.unobserve(entry.target);
+
+          fetchMore().then((res) => {
+            const formattedList = { ...listItem };
+            formattedList.contents = listItem.contents.concat(
+              res.data.contents
+            );
+
+            if (res.data.lastId) {
+              formattedList.lastId = res.data.lastId;
+            }
+            setListItem(formattedList);
+          });
+        }
+      });
+    };
+
+    let io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
+
+    io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
+  }, [listItem]);
 
   return (
     <Grid2 container>
       <Grid2 xs={2}></Grid2>
       <Grid2 xs={8}>
-        {res.data.contents.map((item: ContentItem, index: number) => (
-          <Card onClick={() => goLink(item.link)}>
+        {listItem.contents.map((item: ContentItem, index: number) => (
+          <Card
+            onClick={() => goLink(item.link)}
+            ref={(element) => (listItemsRef.current[index] = element)}
+            key={index}
+          >
             <FlexBox style={{ gap: 10 }}>
               <FlexImgBox
                 url={item.thumbnailURL ? item.thumbnailURL : "/no-image.png"}
@@ -111,6 +154,7 @@ const FlexImgBox = styled.div<FlexImgBoxProps>`
 
   background: url(${(props) => props.url}) no-repeat #ddd center;
   border-radius: 10px;
+  border: 1px solid #ddd;
   overflow: hidden;
 `;
 
