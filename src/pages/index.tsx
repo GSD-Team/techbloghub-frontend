@@ -1,7 +1,7 @@
-import Grid2 from "@mui/material/Unstable_Grid2";
-import postData from "service/api";
-import styled from "@emotion/styled";
-import { useState, useEffect, useRef } from "react";
+import Grid2 from '@mui/material/Unstable_Grid2';
+import postData from 'service/api';
+import styled from '@emotion/styled';
+import { useState, useEffect, useRef } from 'react';
 
 interface ContentResponse {
   res: {
@@ -32,14 +32,14 @@ export default function Home({ res }: ContentResponse): JSX.Element {
   const [listItem, setListItem] = useState(res.data);
   const listItemsRef = useRef<any[]>([]);
   const goLink = (link: string) => {
-    window.open(link, "_blank");
+    window.open(link, '_blank');
   };
 
   const fetchMore = async () => {
-    console.log("fetchMore", listItem.lastId);
+    console.log('fetchMore', listItem.lastId);
     const res = await postData({
-      url: "http://localhost:3000/api/contents/mock",
-      method: "GET",
+      url: 'http://localhost:3000/api/contents/mock',
+      method: 'GET',
       params: {
         currentNextId: listItem.lastId,
       },
@@ -56,9 +56,7 @@ export default function Home({ res }: ContentResponse): JSX.Element {
 
           fetchMore().then((res) => {
             const formattedList = { ...listItem };
-            formattedList.contents = listItem.contents.concat(
-              res.data.contents
-            );
+            formattedList.contents = listItem.contents.concat(res.data.contents);
 
             if (res.data.lastId) {
               formattedList.lastId = res.data.lastId;
@@ -76,7 +74,7 @@ export default function Home({ res }: ContentResponse): JSX.Element {
 
   return (
     <Grid2 container>
-      <Grid2 xs={2}></Grid2>
+      <Grid2 xs={2} />
       <Grid2 xs={8}>
         {listItem.contents.map((item: ContentItem, index: number) => (
           <Card
@@ -85,20 +83,14 @@ export default function Home({ res }: ContentResponse): JSX.Element {
             key={index}
           >
             <FlexBox style={{ gap: 10 }}>
-              <FlexImgBox
-                url={item.thumbnailURL ? item.thumbnailURL : "/no-image.png"}
-              ></FlexImgBox>
+              <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
               <Info>
                 <InfoTop>
                   <InfoTitle>{item.title}</InfoTitle>
                 </InfoTop>
                 <InfoBottom>
                   <Company>
-                    <img
-                      src={item.vendor.thumbnailURL}
-                      alt={item.vendor.name}
-                      height={15}
-                    />
+                    <img src={item.vendor.thumbnailURL} alt={item.vendor.name} height={15} />
                   </Company>
                   <Date>등록일 : {item.postDate}</Date>
                 </InfoBottom>
@@ -107,15 +99,15 @@ export default function Home({ res }: ContentResponse): JSX.Element {
           </Card>
         ))}
       </Grid2>
-      <Grid2 xs={2}></Grid2>
+      <Grid2 xs={2} />
     </Grid2>
   );
 }
 
 export async function getStaticProps() {
   const res = await postData({
-    url: "http://localhost:3000/api/contents/mock",
-    method: "GET",
+    url: 'http://localhost:3000/api/contents/mock',
+    method: 'GET',
   });
   return {
     props: {

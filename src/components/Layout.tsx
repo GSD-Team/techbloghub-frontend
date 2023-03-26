@@ -1,5 +1,5 @@
-import styled from "@emotion/styled";
-import Link from "next/link";
+import styled from '@emotion/styled';
+import Link from 'next/link';
 
 interface LayoutProps {
   children: React.ReactNode;
