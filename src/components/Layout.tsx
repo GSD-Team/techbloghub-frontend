@@ -1,28 +1,10 @@
+import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import Link from 'next/link';
+import Login from '@/components/Login';
 
 interface LayoutProps {
   children: React.ReactNode;
-}
-export default function Layout({ children }: LayoutProps): JSX.Element {
-  return (
-    <Wrapper>
-      <Header>
-        <Logo>
-          <Link href="/">TechBlogPosts</Link>
-        </Logo>
-        <FlexBox style={{ gap: 10 }}>
-          <Link href="/login">
-            <TopButton>Login</TopButton>
-          </Link>
-          <Link href="/signUp">
-            <TopButton>Sign up</TopButton>
-          </Link>
-        </FlexBox>
-      </Header>
-      {children}
-    </Wrapper>
-  );
 }
 
 export const Wrapper = styled.div`
@@ -61,7 +43,35 @@ const Logo = styled.h1`
   font-size: 3rem;
   transition: 0.3s all;
   color: skyblue;
+
   &:hover {
     opacity: 0.1;
   }
 `;
+
+export default function Layout({ children }: LayoutProps): JSX.Element {
+  const [isShowLogin, setIsShowLogin] = useState(false);
+
+  const handleShowLogin = () => {
+    setIsShowLogin(!isShowLogin);
+  };
+  return (
+    <Wrapper>
+      <Header>
+        <Logo>
+          <Link href="/">TechBlogPosts</Link>
+        </Logo>
+        <FlexBox style={{ gap: 10 }}>
+          <Link href="/login">
+            <TopButton onClick={handleShowLogin}>Login</TopButton>
+          </Link>
+          <Link href="/signUp">
+            <TopButton>Sign up</TopButton>
+          </Link>
+        </FlexBox>
+      </Header>
+      {children}
+      {isShowLogin && <Login closeLogin={setIsShowLogin} />}
+    </Wrapper>
+  );
+}

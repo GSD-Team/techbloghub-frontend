@@ -9,13 +9,12 @@ export default async function postData({ url, method = 'GET', data, params }: Pr
   const urlParams = new URLSearchParams();
 
   if (params) {
+    console.log(params);
     Object.keys(params).forEach((key: any) => {
-      console.log(key);
-
       urlParams.append(key, params[key]);
     });
   }
-
+  console.log(urlParams.toString());
   // 옵션 기본 값은 *로 강조
   const response = await fetch(`${url}?${urlParams.toString()}`, {
     method, // *GET, POST, PUT, DELETE 등
@@ -24,7 +23,7 @@ export default async function postData({ url, method = 'GET', data, params }: Pr
     credentials: 'same-origin', // include, *same-origin, omit
     headers: {
       'Content-Type': 'application/json',
-      // 'Content-Type': 'application/x-www-form-urlencoded',
+      'Access-Control-Allow-Origin': '*',
     },
     redirect: 'follow', // manual, *follow, error
     referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
