@@ -1,17 +1,16 @@
+import React, { useEffect, useRef, useState } from 'react';
 import Grid2 from '@mui/material/Unstable_Grid2';
 import postData from 'service/api';
 import styled from '@emotion/styled';
-import React, { useEffect, useRef, useState } from 'react';
+import { Skeleton } from '@mui/material';
 
 interface ContentResponse {
-  res: {
-    data: {
-      contents: ContentItem[];
-      lastId?: string;
-    };
-    message: string;
-    resultCode: string;
+  data: {
+    blogContents: ContentItem[];
+    lastId?: string;
   };
+  message: string;
+  resultCode: string;
 }
 
 interface ContentItem {
@@ -22,6 +21,13 @@ interface ContentItem {
   thumbnailURL: null | string;
   title: string;
   vendor: any;
+  platformVendor: PlatformVendorItem;
+}
+
+interface PlatformVendorItem {
+  id: number;
+  name: string;
+  thumbnailURL: string;
 }
 
 interface FlexImgBoxProps {
@@ -83,54 +89,63 @@ const Date = styled.span``;
 
 const Company = styled.span``;
 
-export default function Home({ res }: ContentResponse): JSX.Element {
+export default function Home({ res }: { res: ContentResponse }): JSX.Element {
   const [listItem, setListItem] = useState(res.data);
+  const [isLoading, setIsLoading] = useState(false);
   const listItemsRef = useRef<any[]>([]);
   const goLink = (link: string) => {
     window.open(link, '_blank');
   };
 
-  useEffect(() => {
-    const fetchMore = async () => {
-      console.log('fetchMore', listItem.lastId);
-      return postData({
-        url: 'http://localhost:3000/api/contents/mock',
-        method: 'GET',
-        params: {
-          currentNextId: listItem.lastId,
-        },
-      });
-    };
-    let io: any = null;
+  const fetchMore = async () => {
+    console.log('fetchMore', listItem.lastId);
+    return postData({
+      url: 'http://localhost:3000/api/contents/mock',
+      method: 'GET',
+      params: {
+        currentNextId: listItem.lastId,
+      },
+    });
+  };
 
+  useEffect(() => {
     const observerCallBack = (entries: any) => {
       entries.forEach((entry: any) => {
         if (entry.isIntersecting) {
           io.unobserve(entry.target);
 
-          fetchMore().then((IoRes) => {
-            const formattedList = { ...listItem };
-            formattedList.contents = listItem.contents.concat(IoRes.data.contents);
+          setIsLoading(true);
 
-            if (IoRes.data.lastId) {
-              formattedList.lastId = IoRes.data.lastId;
+          fetchMore().then((moreRes: ContentResponse) => {
+            const formattedList = { ...listItem };
+            formattedList.blogContents = listItem.blogContents.concat(moreRes.data.blogContents);
+
+            if (moreRes.data.lastId) {
+              formattedList.lastId = moreRes.data.lastId;
             }
             setListItem(formattedList);
+
+            setIsLoading(false);
           });
         }
       });
     };
+    const io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
 
-    io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
+    if (listItemsRef.current[listItemsRef.current.length - 1]) {
+      io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
+    }
+  }, [fetchMore, listItem]);
 
-    io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
-  }, [listItem]);
+  useEffect(() => {
+    console.log(isLoading);
+  }, [isLoading]);
 
   return (
     <Grid2 container>
       <Grid2 xs={2} />
       <Grid2 xs={8}>
-        {listItem.contents.map((item: ContentItem, index: number) => (
+        {listItem.blogContents.map((item: ContentItem, index: number) => (
           <Card
             onClick={() => goLink(item.link)}
             ref={(element) => (listItemsRef.current[index] = element)}
@@ -144,7 +159,7 @@ export default function Home({ res }: ContentResponse): JSX.Element {
                 </InfoTop>
                 <InfoBottom>
                   <Company>
-                    <img src={item.vendor.thumbnailURL} alt={item.vendor.name} height={15} />
+                    <img src={item.platformVendor.thumbnailURL} alt={item.platformVendor.name} height={15} />
                   </Company>
                   <Date>등록일 : {item.postDate}</Date>
                 </InfoBottom>
@@ -152,6 +167,7 @@ export default function Home({ res }: ContentResponse): JSX.Element {
             </FlexBox>
           </Card>
         ))}
+        {isLoading && <Skeleton animation="wave" height={300} />}
       </Grid2>
       <Grid2 xs={2} />
     </Grid2>
@@ -160,7 +176,7 @@ export default function Home({ res }: ContentResponse): JSX.Element {
 
 export async function getStaticProps() {
   const res = await postData({
-    url: 'http://localhost:3000/api/contents/mock',
+    url: 'http://localhost:3000/api/contents/',
     method: 'GET',
   });
   return {
