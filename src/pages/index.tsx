@@ -1,7 +1,7 @@
 import Grid2 from '@mui/material/Unstable_Grid2';
 import postData from 'service/api';
 import styled from '@emotion/styled';
-import { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ContentResponse {
   res: {
@@ -26,94 +26,6 @@ interface ContentItem {
 
 interface FlexImgBoxProps {
   url: string;
-}
-
-export default function Home({ res }: ContentResponse): JSX.Element {
-  const [listItem, setListItem] = useState(res.data);
-  const listItemsRef = useRef<any[]>([]);
-  const goLink = (link: string) => {
-    window.open(link, '_blank');
-  };
-
-  const fetchMore = async () => {
-    console.log('fetchMore', listItem.lastId);
-    const res = await postData({
-      url: 'http://localhost:3000/api/contents/mock',
-      method: 'GET',
-      params: {
-        currentNextId: listItem.lastId,
-      },
-    });
-
-    return res;
-  };
-
-  useEffect(() => {
-    const observerCallBack = (entries: any) => {
-      entries.forEach((entry: any) => {
-        if (entry.isIntersecting) {
-          io.unobserve(entry.target);
-
-          fetchMore().then((res) => {
-            const formattedList = { ...listItem };
-            formattedList.contents = listItem.contents.concat(res.data.contents);
-
-            if (res.data.lastId) {
-              formattedList.lastId = res.data.lastId;
-            }
-            setListItem(formattedList);
-          });
-        }
-      });
-    };
-
-    let io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
-
-    io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
-  }, [listItem]);
-
-  return (
-    <Grid2 container>
-      <Grid2 xs={2} />
-      <Grid2 xs={8}>
-        {listItem.contents.map((item: ContentItem, index: number) => (
-          <Card
-            onClick={() => goLink(item.link)}
-            ref={(element) => (listItemsRef.current[index] = element)}
-            key={index}
-          >
-            <FlexBox style={{ gap: 10 }}>
-              <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
-              <Info>
-                <InfoTop>
-                  <InfoTitle>{item.title}</InfoTitle>
-                </InfoTop>
-                <InfoBottom>
-                  <Company>
-                    <img src={item.vendor.thumbnailURL} alt={item.vendor.name} height={15} />
-                  </Company>
-                  <Date>등록일 : {item.postDate}</Date>
-                </InfoBottom>
-              </Info>
-            </FlexBox>
-          </Card>
-        ))}
-      </Grid2>
-      <Grid2 xs={2} />
-    </Grid2>
-  );
-}
-
-export async function getStaticProps() {
-  const res = await postData({
-    url: 'http://localhost:3000/api/contents/mock',
-    method: 'GET',
-  });
-  return {
-    props: {
-      res,
-    },
-  };
 }
 
 const Card = styled.div`
@@ -170,3 +82,90 @@ const InfoBottom = styled.div`
 const Date = styled.span``;
 
 const Company = styled.span``;
+
+export default function Home({ res }: ContentResponse): JSX.Element {
+  const [listItem, setListItem] = useState(res.data);
+  const listItemsRef = useRef<any[]>([]);
+  const goLink = (link: string) => {
+    window.open(link, '_blank');
+  };
+
+  useEffect(() => {
+    const fetchMore = async () => {
+      console.log('fetchMore', listItem.lastId);
+      return postData({
+        url: 'http://localhost:3000/api/contents/mock',
+        method: 'GET',
+        params: {
+          currentNextId: listItem.lastId,
+        },
+      });
+    };
+    let io: any = null;
+
+    const observerCallBack = (entries: any) => {
+      entries.forEach((entry: any) => {
+        if (entry.isIntersecting) {
+          io.unobserve(entry.target);
+
+          fetchMore().then((IoRes) => {
+            const formattedList = { ...listItem };
+            formattedList.contents = listItem.contents.concat(IoRes.data.contents);
+
+            if (IoRes.data.lastId) {
+              formattedList.lastId = IoRes.data.lastId;
+            }
+            setListItem(formattedList);
+          });
+        }
+      });
+    };
+
+    io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
+
+    io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
+  }, [listItem]);
+
+  return (
+    <Grid2 container>
+      <Grid2 xs={2} />
+      <Grid2 xs={8}>
+        {listItem.contents.map((item: ContentItem, index: number) => (
+          <Card
+            onClick={() => goLink(item.link)}
+            ref={(element) => (listItemsRef.current[index] = element)}
+            key={index}
+          >
+            <FlexBox style={{ gap: 10 }}>
+              <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
+              <Info>
+                <InfoTop>
+                  <InfoTitle>{item.title}</InfoTitle>
+                </InfoTop>
+                <InfoBottom>
+                  <Company>
+                    <img src={item.vendor.thumbnailURL} alt={item.vendor.name} height={15} />
+                  </Company>
+                  <Date>등록일 : {item.postDate}</Date>
+                </InfoBottom>
+              </Info>
+            </FlexBox>
+          </Card>
+        ))}
+      </Grid2>
+      <Grid2 xs={2} />
+    </Grid2>
+  );
+}
+
+export async function getStaticProps() {
+  const res = await postData({
+    url: 'http://localhost:3000/api/contents/mock',
+    method: 'GET',
+  });
+  return {
+    props: {
+      res,
+    },
+  };
+}
