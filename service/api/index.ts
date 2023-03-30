@@ -14,7 +14,6 @@ export default async function postData({ url, method = 'GET', data, params }: Pr
       urlParams.append(key, params[key]);
     });
   }
-  console.log(urlParams.toString());
   // 옵션 기본 값은 *로 강조
   const response = await fetch(`${url}?${urlParams.toString()}`, {
     method, // *GET, POST, PUT, DELETE 등
@@ -24,6 +23,7 @@ export default async function postData({ url, method = 'GET', data, params }: Pr
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
+      'User-Agent': '*',
     },
     redirect: 'follow', // manual, *follow, error
     referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url

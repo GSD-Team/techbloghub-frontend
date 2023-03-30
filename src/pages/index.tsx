@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Grid2 from '@mui/material/Unstable_Grid2';
 import postData from 'service/api';
 import styled from '@emotion/styled';
@@ -97,76 +97,82 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
     window.open(link, '_blank');
   };
 
-  const fetchMore = async () => {
-    console.log('fetchMore', listItem.lastId);
-    return postData({
-      url: 'http://localhost:3000/api/contents/mock',
-      method: 'GET',
-      params: {
-        currentNextId: listItem.lastId,
-      },
-    });
-  };
+  const fetchMore = useCallback(async () => {
+    const formattedList = { ...listItem };
+    setIsLoading(true);
+    try {
+      const response = await postData({
+        url: 'http://localhost:3000/api/contents/mock',
+        method: 'GET',
+        params: {
+          currentNextId: listItem.lastId,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // 데이터 처리 로직
+
+        formattedList.blogContents = listItem.blogContents.concat(data.data.blogContents);
+
+        if (data.data.lastId) {
+          formattedList.lastId = data.data.lastId;
+        }
+
+        setListItem(formattedList);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listItem]);
 
   useEffect(() => {
+    let io: IntersectionObserver;
     const observerCallBack = (entries: any) => {
       entries.forEach((entry: any) => {
         if (entry.isIntersecting) {
           io.unobserve(entry.target);
-
-          setIsLoading(true);
-
-          fetchMore().then((moreRes: ContentResponse) => {
-            const formattedList = { ...listItem };
-            formattedList.blogContents = listItem.blogContents.concat(moreRes.data.blogContents);
-
-            if (moreRes.data.lastId) {
-              formattedList.lastId = moreRes.data.lastId;
-            }
-            setListItem(formattedList);
-
-            setIsLoading(false);
-          });
+          fetchMore().then((r) => console.log(r));
         }
       });
     };
-    const io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
+    io = new IntersectionObserver(observerCallBack, { threshold: 0.7 });
 
     if (listItemsRef.current[listItemsRef.current.length - 1]) {
       io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
     }
   }, [fetchMore, listItem]);
 
-  useEffect(() => {
-    console.log(isLoading);
-  }, [isLoading]);
-
   return (
     <Grid2 container>
       <Grid2 xs={2} />
       <Grid2 xs={8}>
-        {listItem.blogContents.map((item: ContentItem, index: number) => (
-          <Card
-            onClick={() => goLink(item.link)}
-            ref={(element) => (listItemsRef.current[index] = element)}
-            key={index}
-          >
-            <FlexBox style={{ gap: 10 }}>
-              <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
-              <Info>
-                <InfoTop>
-                  <InfoTitle>{item.title}</InfoTitle>
-                </InfoTop>
-                <InfoBottom>
-                  <Company>
-                    <img src={item.platformVendor.thumbnailURL} alt={item.platformVendor.name} height={15} />
-                  </Company>
-                  <Date>등록일 : {item.postDate}</Date>
-                </InfoBottom>
-              </Info>
-            </FlexBox>
-          </Card>
-        ))}
+        {listItem
+          ? listItem.blogContents.map((item: ContentItem, index: number) => (
+              <Card
+                onClick={() => goLink(item.link)}
+                ref={(element) => (listItemsRef.current[index] = element)}
+                key={index}
+              >
+                <FlexBox style={{ gap: 10 }}>
+                  <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
+                  <Info>
+                    <InfoTop>
+                      <InfoTitle>{item.title}</InfoTitle>
+                    </InfoTop>
+                    <InfoBottom>
+                      <Company>
+                        <img src={item.platformVendor.thumbnailURL} alt={item.platformVendor.name} height={15} />
+                      </Company>
+                      <Date>등록일 : {item.postDate}</Date>
+                    </InfoBottom>
+                  </Info>
+                </FlexBox>
+              </Card>
+            ))
+          : null}
         {isLoading && <Skeleton animation="wave" height={300} />}
       </Grid2>
       <Grid2 xs={2} />
@@ -175,13 +181,19 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
 }
 
 export async function getStaticProps() {
-  const res = await postData({
-    url: 'http://localhost:3000/api/contents/',
-    method: 'GET',
-  });
-  return {
-    props: {
-      res,
-    },
-  };
+  try {
+    const res = await postData({
+      url: 'http://localhost:3000/api/contents/',
+      method: 'GET',
+    });
+    return {
+      props: {
+        res,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {};
+  }
 }

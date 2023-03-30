@@ -62,9 +62,7 @@ export default function Layout({ children }: LayoutProps): JSX.Element {
           <Link href="/">TechBlogPosts</Link>
         </Logo>
         <FlexBox style={{ gap: 10 }}>
-          <Link href="/login">
-            <TopButton onClick={handleShowLogin}>Login</TopButton>
-          </Link>
+          <TopButton onClick={handleShowLogin}>Login</TopButton>
           <Link href="/signUp">
             <TopButton>Sign up</TopButton>
           </Link>
