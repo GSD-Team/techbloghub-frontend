@@ -1,5 +1,7 @@
-const nextConfig = {
-  parser: '@typescript-eslint/parser',
+const DEVELOP_API = process.env.DEVELOP_API;
+
+module.exports = {
+  reactStrictMode: true,
   parserOptions: {
     project: './tsconfig.json',
     sourceType: 'module',
@@ -8,15 +10,15 @@ const nextConfig = {
     appDir: false,
     fontLoaders: [{ loader: '@next/font/google' }],
   },
-  rewrites: () => {
+  async rewrites() {
     return [
       {
-        source: '/api/contents',
-        destination: `${process.env.DEVELOPE_API}/contents`,
+        source: `/api/contents`,
+        destination: `${DEVELOP_API}/contents`,
       },
       {
         source: '/api/contents/mock',
-        destination: `${process.env.DEVELOPE_API}/contents/mock`,
+        destination: `${DEVELOP_API}/contents/mock`,
       },
       {
         source: '/api/login/auth2/github',
@@ -25,5 +27,3 @@ const nextConfig = {
     ];
   },
 };
-
-module.exports = nextConfig;

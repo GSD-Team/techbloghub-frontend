@@ -3,14 +3,15 @@ import Grid2 from '@mui/material/Unstable_Grid2';
 import postData from 'service/api';
 import styled from '@emotion/styled';
 import { Skeleton } from '@mui/material';
+import { CODE } from '../../service/constants';
 
 interface ContentResponse {
   data: {
     blogContents: ContentItem[];
     lastId?: string;
   };
-  message: string;
-  resultCode: string;
+  message?: string;
+  resultCode?: string;
 }
 
 interface ContentItem {
@@ -89,16 +90,30 @@ const Date = styled.span``;
 
 const Company = styled.span``;
 
+const Nodata = styled.div`
+  width: 50%;
+  font-size: 3rem;
+  text-align: center;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  margin: 0 auto;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+`;
+
 export default function Home({ res }: { res: ContentResponse }): JSX.Element {
   const [listItem, setListItem] = useState(res.data);
   const [isLoading, setIsLoading] = useState(false);
   const listItemsRef = useRef<any[]>([]);
+
+  console.log('????????', res);
   const goLink = (link: string) => {
     window.open(link, '_blank');
   };
 
   const fetchMore = useCallback(async () => {
     const formattedList = { ...listItem };
+
     setIsLoading(true);
     try {
       const response = await postData({
@@ -145,34 +160,40 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
     }
   }, [fetchMore, listItem]);
 
+  useEffect(() => {
+    console.log('process.env', process.env);
+  }, []);
+
   return (
     <Grid2 container>
       <Grid2 xs={2} />
       <Grid2 xs={8}>
-        {listItem
-          ? listItem.blogContents.map((item: ContentItem, index: number) => (
-              <Card
-                onClick={() => goLink(item.link)}
-                ref={(element) => (listItemsRef.current[index] = element)}
-                key={index}
-              >
-                <FlexBox style={{ gap: 10 }}>
-                  <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
-                  <Info>
-                    <InfoTop>
-                      <InfoTitle>{item.title}</InfoTitle>
-                    </InfoTop>
-                    <InfoBottom>
-                      <Company>
-                        <img src={item.platformVendor.thumbnailURL} alt={item.platformVendor.name} height={15} />
-                      </Company>
-                      <Date>등록일 : {item.postDate}</Date>
-                    </InfoBottom>
-                  </Info>
-                </FlexBox>
-              </Card>
-            ))
-          : null}
+        {listItem.blogContents.length > 0 ? (
+          listItem.blogContents.map((item: ContentItem, index: number) => (
+            <Card
+              onClick={() => goLink(item.link)}
+              ref={(element) => (listItemsRef.current[index] = element)}
+              key={index}
+            >
+              <FlexBox style={{ gap: 10 }}>
+                <FlexImgBox url={item.thumbnailURL ? item.thumbnailURL : '/no-image.png'} />
+                <Info>
+                  <InfoTop>
+                    <InfoTitle>{item.title}</InfoTitle>
+                  </InfoTop>
+                  <InfoBottom>
+                    <Company>
+                      <img src={item.platformVendor.thumbnailURL} alt={item.platformVendor.name} height={15} />
+                    </Company>
+                    <Date>등록일 : {item.postDate}</Date>
+                  </InfoBottom>
+                </Info>
+              </FlexBox>
+            </Card>
+          ))
+        ) : (
+          <Nodata>🚧 게시물 준비중입니다.</Nodata>
+        )}
         {isLoading && <Skeleton animation="wave" height={300} />}
       </Grid2>
       <Grid2 xs={2} />
@@ -181,19 +202,30 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
 }
 
 export async function getStaticProps() {
+  let data = null;
+  const initialData = {
+    data: {
+      blogContents: [],
+    },
+  };
+
   try {
     const res = await postData({
-      url: 'http://localhost:3000/api/contents/',
+      url: '/contents',
       method: 'GET',
     });
-    return {
-      props: {
-        res,
-      },
-    };
+    if (res.resultCode === CODE.SUCCESS) {
+      data = res;
+    } else {
+      data = initialData;
+    }
   } catch (error) {
-    console.error(error);
-
-    return {};
+    console.log('getStaticProps Error : ', error);
   }
+
+  return {
+    props: {
+      res: data,
+    },
+  };
 }
