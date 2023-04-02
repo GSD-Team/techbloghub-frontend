@@ -9,8 +9,9 @@
   ],
   "parserOptions": {
     "project": "./tsconfig.json"
-    // typescript parser
   },
+  "root": true,
+  "tsconfigRootDir": "./",
   "rules": {
     "no-return-assign": "off",
     "react/no-array-index-key": "off",
