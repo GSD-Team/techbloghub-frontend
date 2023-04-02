@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Grid2 from '@mui/material/Unstable_Grid2';
 import postData from 'service/api';
 import styled from '@emotion/styled';
@@ -105,33 +105,29 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
   const [listItem, setListItem] = useState(res.data);
   const [isLoading, setIsLoading] = useState(false);
   const listItemsRef = useRef<any[]>([]);
-
-  console.log('????????', res);
   const goLink = (link: string) => {
     window.open(link, '_blank');
   };
 
-  const fetchMore = useCallback(async () => {
+  const fetchMore = async () => {
     const formattedList = { ...listItem };
 
     setIsLoading(true);
     try {
       const response = await postData({
-        url: 'http://localhost:3000/api/contents/mock',
+        url: `${process.env.NEXT_PUBLIC_DEVELOP_API}/contents`,
         method: 'GET',
         params: {
           currentNextId: listItem.lastId,
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.resultCode === CODE.SUCCESS) {
         // 데이터 처리 로직
+        formattedList.blogContents = listItem.blogContents.concat(response.data.blogContents);
 
-        formattedList.blogContents = listItem.blogContents.concat(data.data.blogContents);
-
-        if (data.data.lastId) {
-          formattedList.lastId = data.data.lastId;
+        if (response.data.lastId) {
+          formattedList.lastId = response.data.lastId;
         }
 
         setListItem(formattedList);
@@ -141,7 +137,7 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [listItem]);
+  };
 
   useEffect(() => {
     let io: IntersectionObserver;
@@ -149,7 +145,7 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
       entries.forEach((entry: any) => {
         if (entry.isIntersecting) {
           io.unobserve(entry.target);
-          fetchMore().then((r) => console.log(r));
+          fetchMore().then();
         }
       });
     };
@@ -158,11 +154,7 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
     if (listItemsRef.current[listItemsRef.current.length - 1]) {
       io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
     }
-  }, [fetchMore, listItem]);
-
-  useEffect(() => {
-    console.log('process.env', process.env);
-  }, []);
+  }, [listItem]);
 
   return (
     <Grid2 container>
@@ -211,7 +203,7 @@ export async function getStaticProps() {
 
   try {
     const res = await postData({
-      url: '/contents',
+      url: `${process.env.DEVELOP_API}/contents`,
       method: 'GET',
     });
     if (res.resultCode === CODE.SUCCESS) {

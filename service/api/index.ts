@@ -13,8 +13,9 @@ export default async function postData({ url, method = 'GET', data, params }: Pr
       urlParams.append(key, params[key]);
     });
   }
+
   // 옵션 기본 값은 *로 강조
-  const response = await fetch(`${process.env.DEVELOP_API}${url}?${urlParams.toString()}`, {
+  const response = await fetch(`${url}?${urlParams.toString()}`, {
     method, // *GET, POST, PUT, DELETE 등
     mode: 'cors', // no-cors, *cors, same-origin
     cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
