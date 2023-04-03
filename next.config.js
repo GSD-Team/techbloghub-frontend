@@ -1,4 +1,5 @@
 const DEVELOP_API = process.env.DEVELOP_API;
+const GITHUB_OAUTH_URL = process.env.GITHUB_OAUTH_URL;
 
 module.exports = {
   reactStrictMode: true,
@@ -19,10 +20,6 @@ module.exports = {
       {
         source: '/api/contents/mock',
         destination: `${DEVELOP_API}/contents/mock`,
-      },
-      {
-        source: '/api/login/auth2/github',
-        destination: `https://github.com/login/oauth/authorize`,
       },
     ];
   },

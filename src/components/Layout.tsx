@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import Link from 'next/link';
 import Login from '@/components/Login';
+import Cookies from 'js-cookie';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -55,6 +56,10 @@ export default function Layout({ children }: LayoutProps): JSX.Element {
   const handleShowLogin = () => {
     setIsShowLogin(!isShowLogin);
   };
+
+  const isToken = () => {
+    return Boolean(Cookies.get('github_token'));
+  };
   return (
     <Wrapper>
       <Header>
@@ -62,10 +67,7 @@ export default function Layout({ children }: LayoutProps): JSX.Element {
           <Link href="/">TechBlogPosts</Link>
         </Logo>
         <FlexBox style={{ gap: 10 }}>
-          <TopButton onClick={handleShowLogin}>Login</TopButton>
-          <Link href="/signUp">
-            <TopButton>Sign up</TopButton>
-          </Link>
+          {isToken() ? null : <TopButton onClick={handleShowLogin}>Login</TopButton>}
         </FlexBox>
       </Header>
       {children}

@@ -4,6 +4,8 @@ import postData from 'service/api';
 import styled from '@emotion/styled';
 import { Skeleton } from '@mui/material';
 import { CODE } from '../../service/constants';
+import { useRouter } from 'next/router';
+import Cookies from 'js-cookie';
 
 interface ContentResponse {
   data: {
@@ -102,6 +104,7 @@ const Nodata = styled.div`
 `;
 
 export default function Home({ res }: { res: ContentResponse }): JSX.Element {
+  const router = useRouter();
   const [listItem, setListItem] = useState(res.data);
   const [isLoading, setIsLoading] = useState(false);
   const listItemsRef = useRef<any[]>([]);
@@ -155,6 +158,21 @@ export default function Home({ res }: { res: ContentResponse }): JSX.Element {
       io.observe(listItemsRef.current[listItemsRef.current.length - 1]);
     }
   }, [listItem]);
+
+  useEffect(() => {
+    if (router.asPath !== '/') {
+      setCookie(); // github token 쿠키 저장
+      mainRedirect(); // 메인 페이지로 리다이렉트
+    }
+  }, [router.asPath]);
+
+  const setCookie = () => {
+    Cookies.set('github_token', router.asPath.split('=')[1]);
+  };
+
+  const mainRedirect = () => {
+    router.push('/');
+  };
 
   return (
     <Grid2 container>
